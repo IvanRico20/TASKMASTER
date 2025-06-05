@@ -8,6 +8,9 @@ RUN apt-get update && apt-get install -y \
 # Instala Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# Habilita mod_rewrite para Laravel
+RUN a2enmod rewrite
+
 # Copia archivos del proyecto
 COPY . /var/www/html
 
@@ -17,10 +20,17 @@ WORKDIR /var/www/html
 # Instala dependencias de Laravel
 RUN composer install --no-dev --optimize-autoloader
 
-# Establece permisos correctos
+# Genera clave de la aplicación (asegúrate de tener .env primero)
+RUN php artisan key:generate
+
+# Establece permisos
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Expone el puerto 80
+# Configura Apache para Laravel
+COPY ./apache/laravel.conf /etc/apache2/sites-available/000-default.conf
+
+# Expone puerto 80
 EXPOSE 80
 
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=80"]
+# Usa Apache como servidor (por defecto)
+CMD ["apache2-foreground"]
