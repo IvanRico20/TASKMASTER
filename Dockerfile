@@ -26,7 +26,9 @@ RUN if [ ! -f .env ]; then cp .env.example .env; fi
 # NO ejecutar key:generate porque ya la pasas como variable de entorno desde Render
 
 # Limpia cache config y rutas por si acaso
-RUN php artisan config:clear && php artisan cache:clear && php artisan route:clear
+RUN php artisan config:clear
+RUN php artisan cache:clear
+RUN php artisan route:clear
 
 # Establece permisos correctos para storage y cache
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
