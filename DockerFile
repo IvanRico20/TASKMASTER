@@ -1,0 +1,35 @@
+# Usa una imagen oficial de PHP con Apache y extensiones comunes para Laravel
+FROM php:8.2-apache
+
+# Instala dependencias necesarias para Laravel y PHP extensions
+RUN apt-get update && apt-get install -y \
+    libzip-dev \
+    unzip \
+    git \
+    curl \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    zip \
+    && docker-php-ext-install pdo pdo_mysql zip exif pcntl bcmath gd
+
+# Instala Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Copia tu proyecto al directorio de Apache
+COPY . /var/www/html
+
+# Establece el directorio de trabajo
+WORKDIR /var/www/html
+
+# Da permisos para almacenamiento y cache (puedes ajustarlo según necesites)
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+
+# Instala las dependencias de PHP con composer sin paquetes de desarrollo y optimiza la autoload
+RUN composer install --no-dev --optimize-autoloader
+
+# Expone el puerto 80 para el servidor web
+EXPOSE 80
+
+# Comando para arrancar Apache en primer plano
+CMD ["apache2-foreground"]
