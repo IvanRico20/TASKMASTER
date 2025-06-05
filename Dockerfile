@@ -20,7 +20,10 @@ WORKDIR /var/www/html
 # Instala dependencias de Laravel
 RUN composer install --no-dev --optimize-autoloader
 
-# Genera clave de la aplicación (asegúrate de tener .env primero)
+# Copia archivo .env.example a .env para evitar error en key:generate
+RUN cp .env.example .env
+
+# Genera clave de la aplicación
 RUN php artisan key:generate
 
 # Establece permisos
@@ -28,6 +31,7 @@ RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cac
 
 # Configura Apache para Laravel
 COPY ./apache/laravel.conf /etc/apache2/sites-available/000-default.conf
+
 # Expone puerto 80
 EXPOSE 80
 
