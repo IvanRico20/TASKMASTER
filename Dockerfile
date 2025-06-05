@@ -25,8 +25,8 @@ RUN if [ ! -f .env ]; then cp .env.example .env; fi
 
 # No ejecutar key:generate porque pasas la llave desde variables de entorno
 
-# Cambia permisos para storage y bootstrap cache
-RUN chown -R www-data:www-data storage bootstrap/cache
+# Cambia permisos para storage y bootstrap cache (usa ruta absoluta)
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Configura Apache para Laravel (ajusta la ruta si usas otra)
 COPY ./apache/laravel.conf /etc/apache2/sites-available/000-default.conf
