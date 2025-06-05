@@ -1,6 +1,6 @@
 FROM php:8.2-apache
 
-# Instala dependencias del sistema
+# Instala dependencias del sistema y PHP
 RUN apt-get update && apt-get install -y \
     libzip-dev zip unzip git curl libonig-dev libxml2-dev libpq-dev \
     && docker-php-ext-install pdo pdo_pgsql zip
@@ -17,26 +17,20 @@ COPY . /var/www/html
 # Establece el directorio de trabajo
 WORKDIR /var/www/html
 
-# Copia .env si no existe
+# Copia .env si no existe (precaución: Render puede sobreescribir este paso)
 RUN if [ ! -f .env ]; then cp .env.example .env; fi
 
 # Instala dependencias de Laravel
-RUN composer install --no-dev --optimize-autoloader
+RUN composer install --no-dev --optimize-autoloader || true
 
-# Genera clave de la aplicación
-RUN php artisan key:generate || echo "Saltando error de clave"
+# Establece permisos correctos
+RUN chown -R www-data:www-data storage bootstrap/cache
 
-# Limpia cachés para asegurar que tome .env correcto
-RUN php artisan config:clear && php artisan cache:clear
-
-# Establece permisos
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
-
-# Configura Apache para Laravel si tienes el archivo
+# Configura Apache para Laravel si existe archivo
 COPY ./apache/laravel.conf /etc/apache2/sites-available/000-default.conf
 
 # Expone el puerto 80
 EXPOSE 80
 
-# Usa Apache como servidor (por defecto)
+# Usa Apache como servidor
 CMD ["apache2-foreground"]
