@@ -23,10 +23,7 @@ RUN composer install --no-dev --optimize-autoloader
 # Copia .env.example a .env solo si no existe
 RUN if [ ! -f .env ]; then cp .env.example .env; fi
 
-# NO ejecutar key:generate porque pasas la llave desde variables de entorno en Render
-
-# Limpia caché de config, cache y rutas para evitar problemas
-RUN php artisan config:clear && php artisan cache:clear && php artisan route:clear
+# No ejecutar key:generate porque pasas la llave desde variables de entorno
 
 # Cambia permisos para storage y bootstrap cache
 RUN chown -R www-data:www-data storage bootstrap/cache
