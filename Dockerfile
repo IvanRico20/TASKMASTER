@@ -1,9 +1,9 @@
 FROM php:8.2-apache
 
-# Instala dependencias del sistema
+# Instala extensiones necesarias para Laravel + PostgreSQL
 RUN apt-get update && apt-get install -y \
-    libzip-dev zip unzip git curl libonig-dev libxml2-dev \
-    && docker-php-ext-install pdo pdo_mysql zip
+    libzip-dev zip unzip git curl libpq-dev libonig-dev libxml2-dev \
+    && docker-php-ext-install pdo pdo_pgsql zip
 
 # Instala Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -11,29 +11,29 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Habilita mod_rewrite para Laravel
 RUN a2enmod rewrite
 
-# Copia archivos del proyecto
+# Copia los archivos del proyecto
 COPY . /var/www/html
 
 # Establece el directorio de trabajo
 WORKDIR /var/www/html
 
-# Instala dependencias de Laravel
+# Copia el .env.example como .env si no existe aún
+RUN if [ ! -f .env ]; then cp .env.example .env; fi
+
+# Instala dependencias Laravel
 RUN composer install --no-dev --optimize-autoloader
 
-# Copia archivo .env.example a .env para evitar error en key:generate
-RUN cp .env.example .env
-
-# Genera clave de la aplicación
+# Genera la clave de aplicación
 RUN php artisan key:generate
 
-# Establece permisos
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+# Permisos para almacenamiento y caché
+RUN chown -R www-data:www-data storage bootstrap/cache
 
-# Configura Apache para Laravel
+# Copia configuración personalizada de Apache
 COPY ./apache/laravel.conf /etc/apache2/sites-available/000-default.conf
 
-# Expone puerto 80
+# Expone el puerto por defecto
 EXPOSE 80
 
-# Usa Apache como servidor (por defecto)
+# Usa Apache como proceso principal
 CMD ["apache2-foreground"]
