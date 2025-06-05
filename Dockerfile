@@ -27,8 +27,7 @@ RUN php artisan key:generate
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Configura Apache para Laravel
-COPY ./apache/laravel.conf
-
+COPY ./apache/laravel.conf /etc/apache2/sites-available/000-default.conf
 # Expone puerto 80
 EXPOSE 80
 
