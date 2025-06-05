@@ -10,7 +10,7 @@ services:
       - key: APP_ENV
         value: production
       - key: APP_KEY
-        value: base64:/9HtSwr0qrQQ/cJDNU4n967F1DF8mFiXvKSJ1pUv7tU=
+        value: base64:9PfZ795MUIoFqUb2xW/yKSco9s8bp7361tybCXzU0lU=
       - key: APP_DEBUG
         value: "false"
       - key: APP_URL

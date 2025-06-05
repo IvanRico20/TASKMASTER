@@ -11,26 +11,31 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Habilita mod_rewrite para Apache (necesario para Laravel)
 RUN a2enmod rewrite
 
-# Copia los archivos del proyecto al contenedor
+# Copia archivos del proyecto al contenedor
 COPY . /var/www/html
 
-# Establece el directorio de trabajo
+# Establece directorio de trabajo
 WORKDIR /var/www/html
 
 # Instala dependencias de Laravel sin paquetes de desarrollo
 RUN composer install --no-dev --optimize-autoloader
 
-# Copia .env.example a .env si no existe (opcional)
+# Copia .env.example a .env solo si no existe
 RUN if [ ! -f .env ]; then cp .env.example .env; fi
 
-# Establece permisos correctos para storage y cache
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+# NO ejecutar key:generate porque pasas la llave desde variables de entorno en Render
 
-# Copia la configuración de Apache para Laravel
+# Limpia caché de config, cache y rutas para evitar problemas
+RUN php artisan config:clear && php artisan cache:clear && php artisan route:clear
+
+# Cambia permisos para storage y bootstrap cache
+RUN chown -R www-data:www-data storage bootstrap/cache
+
+# Configura Apache para Laravel (ajusta la ruta si usas otra)
 COPY ./apache/laravel.conf /etc/apache2/sites-available/000-default.conf
 
-# Expone puerto 80
+# Expone el puerto 80
 EXPOSE 80
 
-# Usa apache como servidor por defecto
+# Usa Apache como servidor
 CMD ["apache2-foreground"]
